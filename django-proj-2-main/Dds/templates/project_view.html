@@ -1,0 +1,164 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+
+<!-- Enlace a la hoja de estilos CSS -->
+<link rel="stylesheet" href="{% static "css/stylesheet.css" %}">
+
+<!-- Contenedor principal de la página, dividido en filas y columnas -->
+<div class="row" style="height: 100vh;">
+    <!-- Columna izquierda de ancho 2, con fondo oscuro -->
+    <div class="col-2 bg-dark">
+        <!-- Fila en la columna izquierda -->
+        <div class="row">
+            <!-- Botón en el centro con un enlace para volver atrás -->
+            <div class="col-md-12 mt-2 text-center">
+                <button class="btn btn-dark btn-sm  mx-4 text-white">
+                    <a class="text-decoration-none fs-5 py-1 text-white" href="{% url 'project' %}"> ⬅ Volver</a>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna central de ancho 8, con fondo claro -->
+    <div class="col-8 bg-light">
+        <!-- Fila en la columna central -->
+        <div class="row">
+            <!-- Dos botones: "Project" y "Statistics" -->
+            <div class="col-1"><button id="pt" class="btn btn-light text-decoration-none"> Proyecto </button></div>
+            <div class="col-1"><button id="st" class="btn btn-light text-decoration-none"> Estadísticas </button></div>
+        </div>
+        
+        <!-- Fila en el centro con elementos Kanban (tabla) y estadísticas ocultas -->
+        <div class="row justify-content-center show" style="height: 100vh;">
+                    
+            <!-- Tablero Kanban con elementos desplazables horizontalmente -->
+            <div class="kanban g-0" style="overflow-x:auto;" id="kanban-board">
+                
+                <!-- Tabla que muestra las etapas del proyecto -->
+                <table class="col-12" style="height: 100vh;">
+                    <thead>
+                        <tr>
+                            <!-- Itera a través de las etapas del proyecto y muestra sus nombres -->
+                            {% for s in stage %}   
+                            <th style="border: 2px solid black;" class="{{s.color}} text-center">
+                                {{s.nombre}}
+                            </th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if task %}
+                        <tr>
+                            <!-- Itera a través de las etapas del proyecto y muestra las tareas en cada etapa -->
+                            {% for x in stage %}
+                            <td style="border: 2px solid black;">
+                                <div class="row" style="min-width:20vw; max-width:30vw;width:100%; height:100% ">
+                                    <div class="col-12" ondrop="drop(event)" ondragover="allowDrop(event)">
+                                <!-- Itera a través de las tareas y muestra las tareas en esta etapa -->
+                                {% for t in task %}
+                                    {% if t.stage == x %}
+                                            <div class="task col-10 mx-auto m-2 p-2" id="{{t.id}}" draggable="true" ondragstart="drag(event)">
+                                                <div class="row">
+                                                    <span class="col-md-6">{{t.nombre}}</span>
+                                                    <!-- Formulario para eliminar tareas (solo visible para el administrador del proyecto) -->
+                                                    {% if project.admin == user %}
+                                                    <form class="col-lg-6 text-end" method="POST" action="{% url "project_delete_task" project.id t.id %}">
+                                                        {% csrf_token %} 
+                                                        <button class="btn btn-sm btn-danger"> Eliminar </button>
+                                                    </form>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                    {% endif %}
+                                {% endfor %}
+                                    </div>
+                                </div>
+                            </td>
+                            {% endfor %}
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+                
+            </div>
+
+            <!-- Contenedor de estadísticas oculto -->
+            <div class="row justify-content-center kanban g-0 hidden" id="stats" style="overflow-x:auto; height: 100vh;">
+                <div class="col-12">
+                        <img src="{% static "images/your_task_1.png" %}" class="bg-secondary rounded" style="width: 100%; max-width: 128px; height: auto;">
+                </div>
+            </div>
+
+            <!-- Contenedor para crear nuevas tareas oculto -->
+            <div class="row justify-content-center kanban g-0 hidden" style="overflow-x:auto; height: 100vh;" id="create">
+                <div class="col-4 m-4 mx-auto bg-secondary rounded">
+                    {{error}}
+                    <form class="p-2" method="POST">
+                        {{form.as_p}}
+                        {% csrf_token %}
+                        <button class="btn btn-dark" id="create">Crear tarea</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    
+    </div>
+    <!-- Columna derecha de ancho 2, con fondo oscuro -->
+    <div class="col-2 bg-dark">
+        <div class="row">
+            <!-- Si el administrador del proyecto es el usuario actual, muestra opciones adicionales -->
+            {% if project.admin == user %}
+            <div class="col-12 text-center">
+                <button class="btn bg-light mt-2">
+                    <div class="col-md-6 mx-auto">
+                        <img src="{% static "images/invite_icon.svg" %}" style="width: 30px; height: auto;">
+                    </div> 
+                    <small>Invitar personas</small>
+                </button>
+            </div>
+            
+            <div class="col-12 text-center">
+                <button class="btn bg-light mt-2" onclick="create()">
+                    <div class="col-md-6 mx-auto">
+                        <img src="{% static "images/create_task.png" %}" style="width: 32px; height: auto;">
+                    </div> 
+                    <small>Crear tarea</small>
+                </button>
+                <button class="btn bg-light mt-2">
+                    <div class="col-md-6 mx-auto">
+                        <img src="{% static "images/new_stage.png" %}" style="width: 32px; height: auto;">
+                    </div> 
+                    <small>Agregar etapa</small>
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        <div class="row m-4">
+            <div class="col-12">
+                <p class="fs-5 text-white"> Miembros del proyecto </p>
+            </div>
+            <!-- Muestra al administrador del proyecto -->
+            <div class="col-lg-6 text-center">
+                <img draggable="false" style="width: 100%; min-width: 40px; max-width: 40px; height: auto;" src="{% static "images/default_user.png" %}"></img>
+                <p class="col-12 text-white lh-sm">
+                    {{project.admin}}
+                    <br>(Admin)
+                </p>                
+            </div>
+            <!-- Itera a través de los miembros del proyecto y los muestra -->
+            {% for m in member %}
+            <div class="col-lg-6 text-center">
+                <img draggable="false" style="width: 100%; min-width: 40px; max-width: 40px; height: auto;" src="{% static "images/default_user.png" %}"></img>
+                <p class="text-white">{{m.person}}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Inclusión de script JavaScript para la página -->
+<script src="{% static "js/project_view.js" %}"></script>
+
+{% endblock %}

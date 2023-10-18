@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-4">
+        <h1 class="display-1">Tasks</h1>
+    </div>
+</div>
+
+<div class="row ms-3 justify-content-center">
+    <div class="col-8">
+        <div class="row">
+            <div class="col-10 mt-3">
+                <div class="card" >
+                    <div class="card-body">
+                        <form method="POST">
+                            <div class="row">
+                                <div class="col-6">
+                                    {{form}}
+                                    {% csrf_token %}
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-dark mt-4">+ Create</button>
+                                </div>
+                            </div>
+                        </form>     
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row ms-3 justify-content-center">
+    <div class="col-8">
+    {% for task in tasks %}
+            <div class="row">
+                <div class="col-10 mt-3">
+                    <div class="card" draggable="true">
+                        <div class="card-header">
+                            <div class="row">
+                                <div class="col-md-7 mx-1">
+                                    <a class="text-decoration-none">{{task.nombre}}</a>
+                                </div>
+                                <div class="col-md-2 g-0">
+                                    <form action="{% url 'complete_task' task.id %}" method="POST">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-success">Mark completed </button>
+                                    </form>
+                                </div>
+                                <div class="col-md-1">
+                                    <form action="{% url 'delete_task' task.id %}" method="POST">
+                                        {% csrf_token %}
+                                        <button class="btn btn-sm btn-danger"> Delete </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">{{task.descripcion}}</p>
+                            <p class="card-text">By: {{task.user}}</p>
+                            <p class="card-text">{{task.fechaTermino|date:'M j Y:i'}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    {% endfor %}
+    </div>
+</div>
+
+{% endblock %}

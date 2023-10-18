@@ -1,0 +1,48 @@
+
+div.custom-card,
+div.custom-card:hover {
+  color: inherit;
+}
+
+.done{
+  background-color:chartreuse;
+}
+
+.todo{
+  background-color: #ffaf00;
+
+}
+
+.inprogress{
+  background-color: crimson;
+}
+
+
+.from-f {
+  background-color: lightgrey;
+  border-style: solid;
+  border-color: lightgray;
+  border-radius: 15px;
+  height: auto;
+  margin-top: 10px;
+}
+
+.kanban {
+  background-color: lightgrey;
+}
+
+.task {
+  background-color: white;
+  margin: 0.2rem 0rem 0.3rem 0rem;
+  border: 0.1rem solid black;
+  border-radius: 0.2rem;
+}
+
+.hidden {
+  display: none;
+}
+.show{
+  display: block;
+}
+
+
